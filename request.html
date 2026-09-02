@@ -1,48 +1,36 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>LoopIn</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Request gear — LoopIn</title>
+  <script src="script.js" defer></script>
+  <link rel="stylesheet" href="styles.css">
 </head>
-
 <body>
-    <header class="site-header"><a class="brand" href="index.html"><span>↔</span>LoopIn</a>
-        <nav><a href="index.html">Home</a><a href="listings.html">Browse gear</a><a class="active"
-                href="request.html">Post a request</a></nav>
-        <div class="profile"><i></i>pragati@srmist.edu.in</div>
-    </header>
-    <main class="request">
-        <section>
-            <p class="eyebrow">ASK YOUR NETWORK</p>
-            <h1>Put the word out.</h1>
-            <p>We'll start with students closest to you, so every request arrives with context and trust.</p>
-            <div class="tip"><b>✦</b>
-                <div><strong>A more useful request gets faster replies.</strong><small>Mention what you're using it for
-                        and the dates you need it.</small></div>
-            </div>
-        </section>
-        <section class="form-card"><span>STEP 1 OF 1</span>
-            <h2>What are you looking for?</h2>
-            <p>Share the essentials and we'll match you with the right people.</p>
-            <form><label>Gear needed<input type="text" placeholder="e.g. DSLR Camera, tent, calculator"
-                        required></label>
-                <div class="row"><label>Start date<input type="date" required></label><label>End date<input type="date"
-                            required></label></div><label>A few more details <em>optional</em><textarea rows="4"
-                        placeholder="What are you using it for? Any preferences?"></textarea></label><label>Share
-                    with<select>
-                        <option>My friends and classmates</option>
-                        <option selected>Friends of friends, too</option>
-                        <option>Everyone on campus</option>
-                    </select></label><button class="button primary">Broadcast request →</button>
-            </form>
-        </section>
-    </main>
-    <footer class="site-footer"><a class="brand" href="index.html"><span>↔</span>LoopIn</a>
-        <p>Gear goes further when it goes around.</p><small>Verified student community</small>
-    </footer>
+  <header class="navbar">
+    <a href="index.html" class="logo-container" aria-label="LoopIn home"><span class="logo-icon" aria-hidden="true">↔</span><span class="logo-text">LoopIn</span></a>
+    <nav class="auth-links" aria-label="Account"><a href="signin.html">Sign in</a><a class="auth-signup" href="signup.html">Create account</a></nav>
+  </header>
+  <section class="hero-section">
+    <p class="eyebrow">Need to borrow?</p>
+    <h1>Ask your campus circle.</h1>
+    <p class="subtitle">We’ll start close to home and only widen the search if you choose.</p>
+    <nav class="mode-switcher" aria-label="Gear options"><a href="request.html" class="mode-btn active">I need something</a><a href="listings.html" class="mode-btn">Browse gear</a></nav>
+  </section>
+  <main class="main-container single-column">
+    <section class="panel-card request-panel">
+      <p class="section-kicker">New request</p>
+      <h2>A few details and you’re set.</h2>
+      <form class="request-form">
+        <div class="form-group"><label for="item-name">What are you looking for?</label><input type="text" id="item-name" placeholder="Camera, calculator, tripod…" autocomplete="off" required></div>
+        <div class="form-row"><div class="form-group"><label for="date-start">Start date</label><input type="date" id="date-start" required></div><div class="form-group"><label for="date-end">End date</label><input type="date" id="date-end" required></div></div>
+        <div class="form-group"><label for="trust-radius">Who should see this?</label><select id="trust-radius"><option value="1">My friends and classmates</option><option value="2" selected>Friends of friends</option><option value="3">Anyone on campus</option></select></div>
+        <button type="submit" class="primary-btn">Share request <span aria-hidden="true">→</span></button>
+        <p class="form-note">You can always take it down later. We’ll never share your email address.</p>
+      </form>
+    </section>
+  </main>
+  <footer class="footer"><p>LoopIn is for verified students · Keep it kind, keep it local.</p></footer>
 </body>
-
 </html>

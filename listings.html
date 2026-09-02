@@ -1,74 +1,28 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>LoopIn</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Browse gear — LoopIn</title>
+  <script src="script.js" defer></script>
+  <link rel="stylesheet" href="styles.css">
 </head>
-
 <body>
-    <header class="site-header"><a class="brand" href="index.html"><span>↔</span>LoopIn</a>
-        <nav><a href="index.html">Home</a><a class="active" href="listings.html">Browse gear</a><a
-                href="request.html">Post a request</a></nav>
-        <div class="profile"><i></i>pragati@srmist.edu.in</div>
-    </header>
-    <main class="page">
-        <p class="eyebrow">CAMPUS MARKETPLACE</p>
-        <h1>Find gear near you.</h1>
-        <p class="intro">Every listing shows the connection that makes borrowing feel more personal.</p>
-        <div class="browse">
-            <aside>
-                <h3>Filter gear</h3><label>Search<input type="search" placeholder="Camera, calculator…"></label>
-                <hr><b>Category</b><label><input type="checkbox" checked> All categories</label><label><input
-                        type="checkbox"> Tech &amp; study</label><label><input type="checkbox"> Events &amp;
-                    outdoors</label>
-                <hr><b>Connection</b><label><input type="checkbox" checked> 1st degree</label><label><input
-                        type="checkbox"> Friends of friends</label><label><input type="checkbox"> Same dorm</label>
-            </aside>
-            <section>
-                <div class="results"><b>24 items available</b><button>Closest connection ↓</button></div>
-                <div class="listing-grid">
-                    <article class="listing">
-                        <div class="visual green">◉</div>
-                        <div><label class="trust green-t">Shared class</label>
-                            <h2>Canon EOS Rebel T7</h2>
-                            <p>Ananya S. · CS '26</p><small>👥 CS301 Data Structures together</small>
-                            <footer><b>$15 <small>/ day</small></b><button>Request rental</button></footer>
-                        </div>
-                    </article>
-                    <article class="listing">
-                        <div class="visual peach">⌗</div>
-                        <div><label class="trust blue-t">2nd degree</label>
-                            <h2>TI-84 Plus CE Calculator</h2>
-                            <p>Arjun R. · EE '25</p><small>↗ Mutual: Karan Mehta</small>
-                            <footer><b>$5 <small>/ day</small></b><button>Request rental</button></footer>
-                        </div>
-                    </article>
-                    <article class="listing">
-                        <div class="visual blue">◌</div>
-                        <div><label class="trust orange-t">Same dorm</label>
-                            <h2>JBL Flip 6 Speaker</h2>
-                            <p>Meera N. · ME '27</p><small>⌂ West Quad Hall</small>
-                            <footer><b>$8 <small>/ day</small></b><button>Request rental</button></footer>
-                        </div>
-                    </article>
-                    <article class="listing">
-                        <div class="visual tan">⌁</div>
-                        <div><label class="trust blue-t">2nd degree</label>
-                            <h2>Manfrotto Compact Tripod</h2>
-                            <p>Rohan K. · Art '25</p><small>↗ Mutual: Kavya Sharma</small>
-                            <footer><b>$6 <small>/ day</small></b><button>Request rental</button></footer>
-                        </div>
-                    </article>
-                </div>
-            </section>
-        </div>
-    </main>
-    <footer class="site-footer"><a class="brand" href="index.html"><span>↔</span>LoopIn</a>
-        <p>Gear goes further when it goes around.</p><small>Verified student community</small>
-    </footer>
+  <header class="navbar"><a href="index.html" class="logo-container" aria-label="LoopIn home"><span class="logo-icon" aria-hidden="true">↔</span><span class="logo-text">LoopIn</span></a><nav class="auth-links" aria-label="Account"><a href="signin.html">Sign in</a><a class="auth-signup" href="signup.html">Create account</a></nav></header>
+  <section class="hero-section">
+    <p class="eyebrow">Borrow nearby</p><h1>Useful stuff, close to you.</h1><p class="subtitle">Gear from people in your campus community — shown closest connection first.</p>
+    <nav class="mode-switcher" aria-label="Gear options"><a href="request.html" class="mode-btn">I need something</a><a href="listings.html" class="mode-btn active">Browse gear</a></nav>
+  </section>
+  <main class="main-container single-column">
+    <section class="panel-card matches-panel">
+      <div class="panel-header"><div><p class="section-kicker">Around you</p><h2>Available now</h2></div><span class="badge-count">3 nearby</span></div>
+      <div class="match-list">
+        <article class="match-card degree-1"><div class="trust-badge badge-1st">1st degree</div><div class="card-content"><div class="item-info"><h3>Canon EOS Rebel T7 DSLR</h3><p class="owner-meta">Aarav Mehta · CSE ’26</p><div class="trust-proof"><span class="icon" aria-hidden="true">◉</span> You share <em>Data Structures</em></div></div><div class="action-block"><span class="price">₹800 <small>a day</small></span><button class="secondary-btn" type="button">Ask to borrow</button></div></div></article>
+        <article class="match-card degree-2"><div class="trust-badge badge-2nd">2nd degree</div><div class="card-content"><div class="item-info"><h3>Casio fx-991ES Plus</h3><p class="owner-meta">Kavya Iyer · ECE ’25</p><div class="trust-proof"><span class="icon" aria-hidden="true">◌</span> Mutual: <em>Rohan Sharma</em> · 2 past borrows</div></div><div class="action-block"><span class="price">₹100 <small>a day</small></span><button class="secondary-btn" type="button">Ask to borrow</button></div></div></article>
+        <article class="match-card degree-3"><div class="trust-badge badge-3rd">Same building</div><div class="card-content"><div class="item-info"><h3>Heavy-duty extension cord · 15 m</h3><p class="owner-meta">Ishita Verma · Mechanical ’27</p><div class="trust-proof"><span class="icon" aria-hidden="true">⌂</span> Also in <em>Tagore Hostel</em></div></div><div class="action-block"><span class="price">₹50 <small>a day</small></span><button class="secondary-btn" type="button">Ask to borrow</button></div></div></article>
+      </div>
+    </section>
+  </main>
+  <footer class="footer"><p>LoopIn is for verified students · Keep it kind, keep it local.</p></footer>
 </body>
-
 </html>
