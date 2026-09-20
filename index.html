@@ -4,28 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>LoopIn — campus gear, shared</title>
-  <script src="script.js" defer></script>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
-  <header class="navbar">
-    <a href="index.html" class="logo-container" aria-label="LoopIn home"><span class="logo-icon" aria-hidden="true">↔</span><span class="logo-text">LoopIn</span></a>
-    <nav class="auth-links" aria-label="Account"><a href="signin.html">Sign in</a><a class="auth-signup" href="signup.html">Create account</a></nav>
-  </header>
-  <section class="hero-section">
-    <p class="eyebrow">A better way to borrow nearby</p>
-    <h1>The thing you need is probably already on campus.</h1>
-    <p class="subtitle">Borrow from people you know — classmates, neighbours, and friends of friends.</p>
-    <nav class="mode-switcher" aria-label="Gear options"><a href="request.html" class="mode-btn active">I need something</a><a href="listings.html" class="mode-btn">Browse gear</a></nav>
-  </section>
-  <main class="main-container single-column">
-    <section class="panel-card text-center">
-      <p class="section-kicker">Start here</p>
-      <h2>What are you looking for?</h2>
-      <p class="panel-desc">Post a request and we’ll put it in front of the people most likely to help — no campus-wide spam.</p>
-      <a class="primary-btn button-link" href="request.html">Post a request <span aria-hidden="true">→</span></a>
-    </section>
-  </main>
-  <footer class="footer"><p>LoopIn is for verified students · Keep it kind, keep it local.</p></footer>
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
 </body>
 </html>
