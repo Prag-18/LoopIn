@@ -1,32 +1,47 @@
 package com.loopin.service;
 
+import com.loopin.client.TrustServiceClient;
+import com.loopin.client.TrustVerificationResponse;
 import com.loopin.model.ItemListing;
 import com.loopin.model.ItemRequest;
+import com.loopin.model.User;
 import com.loopin.repository.ListingRepository;
 import com.loopin.repository.RequestRepository;
+import com.loopin.repository.UserRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.temporal.ChronoUnit;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 /**
  * Business Layer Implementation of RequestService.
- * Enforces business logic and validation rules before interacting with the Data Access Layer.
+ * Enforces business logic and validation rules, manages User/ItemRequest JPA persistence,
+ * and coordinates inter-service verification with Service 2.
  */
 @Service
+@Transactional(readOnly = true)
 public class RequestServiceImpl implements RequestService {
 
     private static final int MAX_BORROW_DAYS = 30;
 
     private final RequestRepository requestRepository;
+    private final UserRepository userRepository;
     private final ListingRepository listingRepository;
+    private final TrustServiceClient trustServiceClient;
 
-    // Constructor-based dependency injection
-    public RequestServiceImpl(RequestRepository requestRepository, ListingRepository listingRepository) {
+    public RequestServiceImpl(RequestRepository requestRepository,
+                              UserRepository userRepository,
+                              ListingRepository listingRepository,
+                              TrustServiceClient trustServiceClient) {
         this.requestRepository = requestRepository;
+        this.userRepository = userRepository;
         this.listingRepository = listingRepository;
+        this.trustServiceClient = trustServiceClient;
     }
 
     @Override
@@ -40,7 +55,13 @@ public class RequestServiceImpl implements RequestService {
                 .orElseThrow(() -> new NoSuchElementException("Item request not found with ID: " + id));
     }
 
+    /**
+     * Storing Users and Attempts:
+     * Validates business rules, creates or reuses the User parent entity,
+     * calls Microservice 2 for trust verification, and saves the ItemRequest attempt.
+     */
     @Override
+    @Transactional
     public ItemRequest createRequest(ItemRequest request) {
         // Enforce Business Rule 1: Dates and Borrow Duration Validation
         validateBorrowDuration(request);
@@ -48,16 +69,46 @@ public class RequestServiceImpl implements RequestService {
         // Enforce Business Rule 2: Trust Radius and Requester Validation
         validateRequesterAndTrustRadius(request);
 
-        // Set default status if not provided
+        // Find existing user or create a new User record
+        String email = request.getRequesterEmail().trim().toLowerCase();
+        String name = (request.getRequesterName() != null && !request.getRequesterName().isBlank())
+                ? request.getRequesterName().trim()
+                : email.split("@")[0];
+
+        User user = userRepository.findByEmail(email).orElseGet(() -> {
+            User newUser = new User();
+            newUser.setEmail(email);
+            newUser.setName(name);
+            newUser.setDepartment("Campus Community");
+            return userRepository.save(newUser);
+        });
+
+        // Link parent User to child ItemRequest attempt
+        request.setUser(user);
+        request.setRequesterEmail(email);
+        request.setRequesterName(user.getName());
+
         if (request.getStatus() == null || request.getStatus().isBlank()) {
             request.setStatus("OPEN");
         }
 
-        // Delegate to Data Access Layer
+        // Inter-Service Communication: Call Microservice 2 (Trust Service)
+        try {
+            TrustVerificationResponse trustResult = trustServiceClient.verifyTrust(
+                    request.getRequesterEmail(),
+                    request.getTrustRadius(),
+                    request.getItemName()
+            );
+            request.setTrustVerificationStatus(trustResult.getStatusMessage());
+        } catch (Exception ex) {
+            request.setTrustVerificationStatus("FALLBACK_VERIFICATION");
+        }
+
         return requestRepository.save(request);
     }
 
     @Override
+    @Transactional
     public ItemRequest updateRequestStatus(Long id, String newStatus) {
         ItemRequest existing = getRequestById(id);
 
@@ -86,10 +137,49 @@ public class RequestServiceImpl implements RequestService {
         String category = req.getCategory();
         int trustRadius = req.getTrustRadius();
 
-        // Cross-domain business logic: Find available listings that fit within the requester's trust degree
-        return listingRepository.findAvailableByCategory(category).stream()
+        return listingRepository.findByAvailableTrueAndCategoryIgnoreCase(category).stream()
                 .filter(listing -> listing.getMinTrustDegree() >= trustRadius)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<ItemRequest> getRequestsByUser(Long userId) {
+        return requestRepository.findByUserIdOrderByCreatedAtDesc(userId);
+    }
+
+    @Override
+    public List<ItemRequest> getRequestsByUserEmail(String email) {
+        return requestRepository.findByRequesterEmailOrderByCreatedAtDesc(email);
+    }
+
+    @Override
+    public Map<String, Object> getBorrowingStatistics() {
+        Map<String, Object> stats = new LinkedHashMap<>();
+        long totalRequests = requestRepository.count();
+        long openRequests = requestRepository.countByStatus("OPEN");
+        long fulfilledRequests = requestRepository.countByStatus("FULFILLED");
+        long cancelledRequests = requestRepository.countByStatus("CANCELLED");
+        long totalUsers = userRepository.count();
+
+        stats.put("totalBorrowAttempts", totalRequests);
+        stats.put("openRequests", openRequests);
+        stats.put("fulfilledRequests", fulfilledRequests);
+        stats.put("cancelledRequests", cancelledRequests);
+        stats.put("registeredUsers", totalUsers);
+        stats.put("successRatePercent", totalRequests > 0 ? (fulfilledRequests * 100.0 / totalRequests) : 0.0);
+
+        return stats;
+    }
+
+    @Override
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
+
+    @Override
+    public User getUserById(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("User not found with ID: " + userId));
     }
 
     /**

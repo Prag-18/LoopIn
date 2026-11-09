@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -84,5 +85,22 @@ class RequestControllerTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getStatus()).isEqualTo("FULFILLED");
+    }
+
+    @Test
+    @DisplayName("GET /api/requests/stats returns aggregate borrowing stats")
+    void shouldReturnBorrowingStatistics() {
+        when(requestService.getBorrowingStatistics()).thenReturn(Map.of(
+                "totalBorrowAttempts", 10L,
+                "openRequests", 6L,
+                "fulfilledRequests", 4L,
+                "registeredUsers", 5L
+        ));
+
+        ResponseEntity<Map<String, Object>> response = requestController.getStatistics();
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().get("totalBorrowAttempts")).isEqualTo(10L);
     }
 }

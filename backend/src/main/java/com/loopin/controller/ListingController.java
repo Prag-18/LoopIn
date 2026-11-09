@@ -29,8 +29,8 @@ public class ListingController {
     public ResponseEntity<List<ItemListing>> getAllListings(
             @RequestParam(required = false) String category) {
         if (category != null && !category.isBlank()) {
-            return ResponseEntity.ok(listingRepository.findAvailableByCategory(category));
+            return ResponseEntity.ok(listingRepository.findByAvailableTrueAndCategoryIgnoreCase(category));
         }
-        return ResponseEntity.ok(listingRepository.findAll());
+        return ResponseEntity.ok(listingRepository.findByAvailableTrue());
     }
 }

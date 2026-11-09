@@ -17,6 +17,7 @@ export default function Request() {
   const handleStartDateChange = (e) => {
     const val = e.target.value;
     setStartDate(val);
+    setErrorMsg('');
     if (endDate && endDate < val) {
       setEndDate(val);
     }
@@ -26,6 +27,10 @@ export default function Request() {
     e.preventDefault();
     if (!itemName.trim()) {
       setErrorMsg('Please enter what you are looking for.');
+      return;
+    }
+    if (!startDate || !endDate) {
+      setErrorMsg('Please select a start and end date.');
       return;
     }
     if (endDate < startDate) {

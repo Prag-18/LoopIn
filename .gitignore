@@ -1,33 +1,65 @@
-# Node & Frontend
-**/node_modules/
-**/dist/
-**/dist-ssr/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
+# ============================================================
+# LoopIn — Root .gitignore
+# ============================================================
 
-# Java & Maven / Backend
-**/target/
-!.mvn/wrapper/maven-wrapper.jar
+# ------------------------------------------------------------
+# Secrets & Environment Variables
+# ------------------------------------------------------------
+.env
+.env.*
+!.env.example
+
+# ------------------------------------------------------------
+# Java / Maven — Backend & Trust Service
+# ------------------------------------------------------------
+target/
 *.class
 *.jar
 *.war
 *.ear
+*.nar
+hs_err_pid*
+replay_pid*
 
-# Environment & Sensitive configs
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+# ------------------------------------------------------------
+# Node / Frontend
+# ------------------------------------------------------------
+node_modules/
+dist/
+dist-ssr/
+*.local
 
-# Logs
-logs/
-*.log
+# npm / yarn / pnpm logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
-# IDE & Editor files
+# Vite cache
+.vite/
+
+# ------------------------------------------------------------
+# IDE & Editor
+# ------------------------------------------------------------
 .vscode/
+!.vscode/extensions.json
 .idea/
 *.iml
+*.iws
+*.ipr
+.project
+.classpath
+.settings/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ------------------------------------------------------------
+# OS
+# ------------------------------------------------------------
 .DS_Store
 Thumbs.db
+desktop.ini

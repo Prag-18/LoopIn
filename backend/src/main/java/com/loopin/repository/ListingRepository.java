@@ -1,19 +1,18 @@
 package com.loopin.repository;
 
 import com.loopin.model.ItemListing;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
 import java.util.List;
-import java.util.Optional;
 
 /**
- * Data Access Layer Interface for ItemListing operations.
+ * Spring Data JPA Repository for ItemListing entity.
  */
-public interface ListingRepository {
+@Repository
+public interface ListingRepository extends JpaRepository<ItemListing, Long> {
 
-    List<ItemListing> findAll();
+    List<ItemListing> findByAvailableTrue();
 
-    Optional<ItemListing> findById(Long id);
-
-    List<ItemListing> findAvailableByCategory(String category);
-
-    ItemListing save(ItemListing listing);
+    List<ItemListing> findByAvailableTrueAndCategoryIgnoreCase(String category);
 }

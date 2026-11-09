@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LoopIn - Campus Item Borrowing & Lending</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #059669;
+            --accent: #f59e0b;
+            --danger: #dc2626;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --radius: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            line-height: 1.5;
+            padding: 24px 16px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            color: white;
+            padding: 28px 32px;
+            border-radius: var(--radius);
+            margin-bottom: 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        header h1 {
+            font-size: 26px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        header .subtitle {
+            color: #94a3b8;
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        .badge-arch {
+            background: rgba(37, 99, 235, 0.25);
+            border: 1px solid #3b82f6;
+            color: #93c5fd;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        .stat-card .num {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .stat-card .label {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 1.3fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        @media (max-width: 850px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        .card h2 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 14px;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #334155;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        button.btn-primary {
+            background-color: var(--primary);
+            color: white;
+            font-weight: 600;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 14px;
+            transition: background-color 0.2s;
+            margin-top: 8px;
+        }
+
+        button.btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .alert {
+            padding: 14px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .alert-success {
+            background: #ecfdf5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+
+        .alert-error {
+            background: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            margin-top: 8px;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background-color: #f1f5f9;
+            color: #475569;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background-color: #f8fafc;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .badge-open {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .badge-fulfilled {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-verified {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .search-bar input {
+            flex: 1;
+        }
+
+        .search-bar button {
+            background: #0f172a;
+            color: white;
+            border: none;
+            padding: 0 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        footer {
+            text-align: center;
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 32px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <h1>🔄 LoopIn Campus Borrowing</h1>
+                <div class="subtitle">Unit 5: Spring Data JPA + Microservices Architecture Demo</div>
+            </div>
+            <div class="badge-arch">Service 1 (Core :8080) ⇄ Service 2 (Trust :8081)</div>
+        </header>
+
+        <!-- Stats Overview -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="num" id="statTotal">-</div>
+                <div class="label">Total Borrow Attempts</div>
+            </div>
+            <div class="stat-card">
+                <div class="num" id="statOpen">-</div>
+                <div class="label">Open Requests</div>
+            </div>
+            <div class="stat-card">
+                <div class="num" id="statFulfilled">-</div>
+                <div class="label">Fulfilled Loans</div>
+            </div>
+            <div class="stat-card">
+                <div class="num" id="statUsers">-</div>
+                <div class="label">Campus Students</div>
+            </div>
+            <div class="stat-card">
+                <div class="num" id="statRate">-%</div>
+                <div class="label">Fulfillment Rate</div>
+            </div>
+        </div>
+
+        <div class="main-layout">
+            <!-- Left: Request Submission Form -->
+            <div class="card">
+                <h2>📝 Submit Borrow Attempt / Request</h2>
+                <div id="alertBox" class="alert"></div>
+
+                <form id="requestForm">
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Student Name</label>
+                            <input type="text" id="reqName" placeholder="e.g. Alex Morgan" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Campus Email</label>
+                            <input type="email" id="reqEmail" placeholder="e.g. alex.m@campus.edu" required>
+                        </div>
+                    </div>
+
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Item Name</label>
+                            <input type="text" id="reqItem" placeholder="e.g. TI-84 Calculator" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Category</label>
+                            <select id="reqCategory">
+                                <option value="Academics">Academics</option>
+                                <option value="Electronics">Electronics</option>
+                                <option value="Lab Gear">Lab Gear</option>
+                                <option value="Sports">Sports</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Start Date</label>
+                            <input type="date" id="reqStartDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label>End Date</label>
+                            <input type="date" id="reqEndDate" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Trust Radius</label>
+                        <select id="reqRadius">
+                            <option value="1">1st Degree (Direct Friends)</option>
+                            <option value="2">2nd Degree (Mutual Friends)</option>
+                            <option value="3">3rd Degree (Campus-Wide)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Notes / Context</label>
+                        <textarea id="reqNote" rows="2" placeholder="e.g. Needed for Calculus III midterm"></textarea>
+                    </div>
+
+                    <button type="submit" class="btn-primary" id="btnSubmit">Submit Borrow Request</button>
+                </form>
+            </div>
+
+            <!-- Right: Student Request History Lookup -->
+            <div class="card">
+                <h2>🔍 Student Attempt History</h2>
+                <div class="search-bar">
+                    <input type="email" id="searchEmail" placeholder="Enter student campus email (e.g. alex.m@campus.edu)">
+                    <button type="button" id="btnSearch">View History</button>
+                </div>
+                <div id="historyTableContainer" style="overflow-x: auto;">
+                    <table id="historyTable">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Dates</th>
+                                <th>Radius</th>
+                                <th>Status</th>
+                                <th>Trust Check</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyBody">
+                            <tr>
+                                <td colspan="5" style="text-align: center; color: var(--text-muted);">
+                                    Enter an email above or submit a request to view history.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- All Active Campus Requests -->
+        <div class="card">
+            <h2>📋 All Campus Requests (Live Database Feed)</h2>
+            <div style="overflow-x: auto;">
+                <table id="requestsTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Student</th>
+                            <th>Email</th>
+                            <th>Item</th>
+                            <th>Category</th>
+                            <th>Duration</th>
+                            <th>Trust Radius</th>
+                            <th>Status</th>
+                            <th>Inter-Service Verification</th>
+                        </tr>
+                    </thead>
+                    <tbody id="requestsBody">
+                        <tr>
+                            <td colspan="9" style="text-align: center;">Loading requests...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <footer>
+            LoopIn Campus Community Platform • Unit 5 Spring Boot Data JPA & Microservices Demo
+        </footer>
+    </div>
+
+    <script>
+        // Set default dates
+        const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const nextWeek = new Date(today);
+        nextWeek.setDate(nextWeek.getDate() + 5);
+
+        document.getElementById('reqStartDate').value = tomorrow.toISOString().split('T')[0];
+        document.getElementById('reqEndDate').value = nextWeek.toISOString().split('T')[0];
+
+        // Fetch and display statistics
+        async function loadStatistics() {
+            try {
+                const res = await fetch('/api/requests/stats');
+                if (res.ok) {
+                    const data = await res.json();
+                    document.getElementById('statTotal').innerText = data.totalBorrowAttempts || 0;
+                    document.getElementById('statOpen').innerText = data.openRequests || 0;
+                    document.getElementById('statFulfilled').innerText = data.fulfilledRequests || 0;
+                    document.getElementById('statUsers').innerText = data.registeredUsers || 0;
+                    document.getElementById('statRate').innerText = (data.successRatePercent || 0).toFixed(0) + '%';
+                }
+            } catch (e) {
+                console.error("Failed loading stats", e);
+            }
+        }
+
+        // Fetch and display all requests
+        async function loadAllRequests() {
+            try {
+                const res = await fetch('/api/requests');
+                if (res.ok) {
+                    const list = await res.json();
+                    const tbody = document.getElementById('requestsBody');
+                    if (list.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="9" style="text-align: center;">No requests found.</td></tr>';
+                        return;
+                    }
+
+                    tbody.innerHTML = list.map(req => `
+                        <tr>
+                            <td>#${req.id}</td>
+                            <td><strong>${req.requesterName || '-'}</strong></td>
+                            <td>${req.requesterEmail || '-'}</td>
+                            <td>${req.itemName || '-'}</td>
+                            <td>${req.category || '-'}</td>
+                            <td>${req.startDate} to ${req.endDate}</td>
+                            <td>Degree ${req.trustRadius}</td>
+                            <td><span class="badge ${req.status === 'OPEN' ? 'badge-open' : 'badge-fulfilled'}">${req.status}</span></td>
+                            <td><span class="badge badge-verified">${req.trustVerificationStatus || 'PENDING'}</span></td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (e) {
+                console.error("Failed loading all requests", e);
+            }
+        }
+
+        // Fetch user history
+        async function loadUserHistory(email) {
+            if (!email) return;
+            try {
+                const res = await fetch(`/api/requests/history?email=${encodeURIComponent(email)}`);
+                if (res.ok) {
+                    const list = await res.json();
+                    const tbody = document.getElementById('historyBody');
+                    if (list.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No attempts found for this user.</td></tr>';
+                        return;
+                    }
+
+                    tbody.innerHTML = list.map(req => `
+                        <tr>
+                            <td><strong>${req.itemName}</strong></td>
+                            <td>${req.startDate} to ${req.endDate}</td>
+                            <td>Degree ${req.trustRadius}</td>
+                            <td><span class="badge ${req.status === 'OPEN' ? 'badge-open' : 'badge-fulfilled'}">${req.status}</span></td>
+                            <td><span class="badge badge-verified">${req.trustVerificationStatus || 'PENDING'}</span></td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (e) {
+                console.error("Failed loading history", e);
+            }
+        }
+
+        // Handle Form Submission
+        document.getElementById('requestForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const alertBox = document.getElementById('alertBox');
+            alertBox.style.display = 'none';
+
+            const payload = {
+                requesterName: document.getElementById('reqName').value.trim(),
+                requesterEmail: document.getElementById('reqEmail').value.trim(),
+                itemName: document.getElementById('reqItem').value.trim(),
+                category: document.getElementById('reqCategory').value,
+                startDate: document.getElementById('reqStartDate').value,
+                endDate: document.getElementById('reqEndDate').value,
+                trustRadius: parseInt(document.getElementById('reqRadius').value, 10),
+                note: document.getElementById('reqNote').value.trim(),
+                status: 'OPEN'
+            };
+
+            try {
+                const res = await fetch('/api/requests', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    alertBox.className = 'alert alert-success';
+                    alertBox.innerHTML = `<strong>Success!</strong> Request #${data.id} for "${data.itemName}" created. Microservice 2 Trust Status: <strong>${data.trustVerificationStatus}</strong>.`;
+                    alertBox.style.display = 'block';
+
+                    // Update UI components
+                    loadStatistics();
+                    loadAllRequests();
+                    loadUserHistory(payload.requesterEmail);
+                    document.getElementById('searchEmail').value = payload.requesterEmail;
+                } else {
+                    alertBox.className = 'alert alert-error';
+                    alertBox.innerHTML = `<strong>Error (${res.status}):</strong> ${data.message || 'Validation failed.'}`;
+                    alertBox.style.display = 'block';
+                }
+            } catch (err) {
+                alertBox.className = 'alert alert-error';
+                alertBox.innerHTML = `<strong>Network Error:</strong> Could not connect to backend server.`;
+                alertBox.style.display = 'block';
+            }
+        });
+
+        // Handle History Search
+        document.getElementById('btnSearch').addEventListener('click', () => {
+            const email = document.getElementById('searchEmail').value.trim();
+            loadUserHistory(email);
+        });
+
+        // Initial Load
+        loadStatistics();
+        loadAllRequests();
+        loadUserHistory('alex.m@campus.edu');
+        document.getElementById('searchEmail').value = 'alex.m@campus.edu';
+    </script>
+</body>
+</html>

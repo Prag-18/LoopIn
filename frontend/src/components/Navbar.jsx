@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 
 export default function Navbar() {
@@ -11,6 +11,11 @@ export default function Navbar() {
         <span className="logo-icon" aria-hidden="true">↔</span>
         <span className="logo-text">LoopIn</span>
       </Link>
+
+      <nav className="nav-links" aria-label="Main navigation">
+        <NavLink to="/request">Post a request</NavLink>
+        <NavLink to="/listings">Browse gear</NavLink>
+      </nav>
 
       <nav className="auth-links" aria-label="Account">
         {profile ? (

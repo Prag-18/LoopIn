@@ -57,7 +57,14 @@ export function AppProvider({ children }) {
     }
   });
 
-  const [interactiveStates, setInteractiveStates] = useState({});
+  const [interactiveStates, setInteractiveStates] = useState(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('loopin-interactions') || '{}');
+      return typeof saved === 'object' && saved !== null ? saved : {};
+    } catch {
+      return {};
+    }
+  });
 
   useEffect(() => {
     try {
@@ -66,6 +73,14 @@ export function AppProvider({ children }) {
       console.error('Failed to save requests:', e);
     }
   }, [requests]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('loopin-interactions', JSON.stringify(interactiveStates));
+    } catch (e) {
+      console.error('Failed to save interactions:', e);
+    }
+  }, [interactiveStates]);
 
   useEffect(() => {
     try {
@@ -86,7 +101,7 @@ export function AppProvider({ children }) {
       start: newReq.start,
       end: newReq.end,
       degree: Number(newReq.degree),
-      owner: `${profile?.name || 'Pragati'} is looking to borrow this`,
+      owner: `${profile?.name || 'You'} is looking to borrow this`,
       createdAt: new Date().toISOString(),
     };
     setRequests((prev) => [requestItem, ...prev]);

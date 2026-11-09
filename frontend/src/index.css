@@ -118,7 +118,7 @@ body {
 .auth-links a {
   color: var(--ink);
   font-size: 14px;
-  font-weight: 650;
+  font-weight: 700;
   text-decoration: none;
   transition: color 0.15s ease;
 }
@@ -138,6 +138,32 @@ body {
 .auth-links .auth-signup:hover {
   background: var(--violet);
   color: white;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.nav-links a {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.nav-links a:hover {
+  color: var(--ink);
+  background: #f0eae1;
+}
+
+.nav-links a.active {
+  color: var(--ink);
+  font-weight: 700;
 }
 
 .signout-btn {
@@ -170,7 +196,7 @@ body {
   margin: 0 0 8px;
   color: var(--violet);
   font-size: 12px;
-  font-weight: 750;
+  font-weight: 800;
   letter-spacing: .09em;
   text-transform: uppercase;
 }
@@ -204,7 +230,7 @@ body {
   color: var(--muted);
   padding: 8px 18px;
   font-size: 14px;
-  font-weight: 650;
+  font-weight: 700;
   text-decoration: none;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -350,7 +376,7 @@ input:focus, select:focus {
   background: #f0edff;
   color: var(--violet);
   font-size: 12px;
-  font-weight: 750;
+  font-weight: 800;
   white-space: nowrap;
 }
 
@@ -430,7 +456,7 @@ input:focus, select:focus {
 
 .trust-proof em {
   font-style: normal;
-  font-weight: 650;
+  font-weight: 700;
 }
 
 .action-block {
@@ -443,7 +469,7 @@ input:focus, select:focus {
 
 .price {
   font-size: 16px;
-  font-weight: 750;
+  font-weight: 800;
 }
 
 .price small {
@@ -579,6 +605,9 @@ input:focus, select:focus {
 @media (max-width: 580px) {
   .navbar {
     padding: 16px 18px;
+  }
+  .nav-links {
+    display: none;
   }
   .hero-section {
     margin-top: 12px;

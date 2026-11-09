@@ -1,18 +1,37 @@
 package com.loopin.model;
 
+import jakarta.persistence.*;
+
 /**
- * Domain Entity representing an item made available by a student lender
+ * JPA Entity representing an item made available by a student lender
  * in the campus community.
  */
+@Entity
+@Table(name = "item_listings")
 public class ItemListing {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(nullable = false)
     private String title;
+
     private String category;
+
+    @Column(name = "owner_name")
     private String ownerName;
+
+    @Column(name = "owner_email", nullable = false)
     private String ownerEmail;
+
+    @Column(name = "min_trust_degree", nullable = false)
     private int minTrustDegree; // 1 = 1st degree only, 2 = up to 2nd degree, 3 = anyone on campus
-    private boolean available;
+
+    @Column(nullable = false)
+    private boolean available = true;
+
+    @Column(name = "condition_state")
     private String condition; // EXCELLENT, GOOD, FAIR
 
     public ItemListing() {

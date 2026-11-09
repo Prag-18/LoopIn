@@ -2,26 +2,27 @@ package com.loopin.controller;
 
 import com.loopin.model.ItemListing;
 import com.loopin.model.ItemRequest;
+import com.loopin.model.User;
 import com.loopin.service.RequestService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
- * Presentation Layer: REST Controller for Item Requests.
+ * Presentation Layer: REST Controller for Item Requests and User Borrowing Attempts.
  * Exposes endpoints for client communication and delegates all business logic
  * to the RequestService.
  */
 @RestController
 @RequestMapping("/api/requests")
-@CrossOrigin(origins = "*") // Allows communication with frontend Vite / React app
+@CrossOrigin(origins = "*")
 public class RequestController {
 
     private final RequestService requestService;
 
-    // Constructor injection of the Service layer
     public RequestController(RequestService requestService) {
         this.requestService = requestService;
     }
@@ -47,7 +48,7 @@ public class RequestController {
     }
 
     /**
-     * Endpoint 3: Create a new borrow request
+     * Endpoint 3: Create/Process a new borrow attempt/request
      * POST /api/requests
      */
     @PostMapping
@@ -76,5 +77,35 @@ public class RequestController {
     public ResponseEntity<List<ItemListing>> getMatches(@PathVariable Long id) {
         List<ItemListing> matches = requestService.findMatchingListings(id);
         return ResponseEntity.ok(matches);
+    }
+
+    /**
+     * Endpoint 6: List a user's attempt history by User ID
+     * GET /api/requests/user/{userId}
+     */
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<ItemRequest>> getUserHistory(@PathVariable Long userId) {
+        List<ItemRequest> history = requestService.getRequestsByUser(userId);
+        return ResponseEntity.ok(history);
+    }
+
+    /**
+     * Endpoint 7: List a user's attempt history by email query param
+     * GET /api/requests/history?email=alex.m@campus.edu
+     */
+    @GetMapping("/history")
+    public ResponseEntity<List<ItemRequest>> getUserHistoryByEmail(@RequestParam String email) {
+        List<ItemRequest> history = requestService.getRequestsByUserEmail(email);
+        return ResponseEntity.ok(history);
+    }
+
+    /**
+     * Endpoint 8: Retrieve campus borrowing aggregate statistics
+     * GET /api/requests/stats
+     */
+    @GetMapping("/stats")
+    public ResponseEntity<Map<String, Object>> getStatistics() {
+        Map<String, Object> stats = requestService.getBorrowingStatistics();
+        return ResponseEntity.ok(stats);
     }
 }

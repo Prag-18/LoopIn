@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import Hero from '../components/Hero';
 import { useApp } from '../context/AppContext';
 
@@ -14,7 +15,7 @@ function formatDate(value) {
 }
 
 export default function Listings() {
-  const { requests, defaultListings, withdrawRequest, interactiveStates, setActionCompleted } = useApp();
+  const { requests, defaultListings, withdrawRequest, interactiveStates, setActionCompleted, profile } = useApp();
 
   const totalCount = requests.length + defaultListings.length;
 
@@ -48,6 +49,15 @@ export default function Listings() {
             <span className="badge-count">{totalCount} nearby</span>
           </div>
 
+          {totalCount === 0 && (
+            <div className="empty-state">
+              <p>Nothing nearby yet — be the first to post a request!</p>
+              <Link to="/request" className="primary-btn button-link" style={{ display: 'inline-flex', width: 'auto', marginTop: '12px' }}>
+                Post a request →
+              </Link>
+            </div>
+          )}
+
           <div className="match-list">
             {/* User Created Requests */}
             {requests.map((req) => {
@@ -76,13 +86,15 @@ export default function Listings() {
                         >
                           {isActioned ? 'Offer sent' : 'Offer yours'}
                         </button>
-                        <button
-                          className="withdraw-btn"
-                          type="button"
-                          onClick={() => withdrawRequest(req.id)}
-                        >
-                          Withdraw request
-                        </button>
+                        {profile && (
+                          <button
+                            className="withdraw-btn"
+                            type="button"
+                            onClick={() => withdrawRequest(req.id)}
+                          >
+                            Withdraw request
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
