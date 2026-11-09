@@ -1,18 +1,29 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 
 export default function SignIn() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { signIn } = useApp();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
+  // Where to send the user after login — back to where they came from, or home
+  const from = location.state?.from?.pathname || '/';
+
+  // Friendly message if they were redirected from a protected page
+  const redirectMessages = {
+    '/request': 'Sign in to post a borrow request.',
+    '/listings': 'Sign in to browse and borrow gear.',
+  };
+  const contextMsg = redirectMessages[from];
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (email) {
       signIn(email, password);
-      navigate('/');
+      navigate(from, { replace: true });
     }
   };
 
@@ -22,7 +33,9 @@ export default function SignIn() {
         <section className="auth-card">
           <p className="section-kicker">Welcome back</p>
           <h1>Sign in to LoopIn.</h1>
-          <p className="auth-intro">Use your college email to pick up where you left off.</p>
+          <p className="auth-intro">
+            {contextMsg || 'Use your college email to pick up where you left off.'}
+          </p>
           <form className="auth-form" onSubmit={handleSubmit}>
             <div className="form-group">
               <label htmlFor="signin-email">College email</label>
@@ -52,7 +65,7 @@ export default function SignIn() {
             </button>
           </form>
           <p className="auth-switch">
-            New here? <Link to="/signup">Create an account</Link>
+            New here? <Link to="/signup" state={{ from: location.state?.from }}>Create an account</Link>
           </p>
         </section>
       </main>

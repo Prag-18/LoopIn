@@ -2,7 +2,6 @@ package com.loopin.controller;
 
 import com.loopin.model.ItemListing;
 import com.loopin.model.ItemRequest;
-import com.loopin.model.User;
 import com.loopin.service.RequestService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

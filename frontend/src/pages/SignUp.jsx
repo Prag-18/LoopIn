@@ -1,19 +1,23 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 
 export default function SignUp() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { signUp } = useApp();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
+  // Respect the redirect chain: if user came via /signin → /signup, honour the original destination
+  const from = location.state?.from?.pathname || '/';
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (name && email) {
       signUp(name, email, password);
-      navigate('/');
+      navigate(from, { replace: true });
     }
   };
 
@@ -68,7 +72,7 @@ export default function SignUp() {
             </button>
           </form>
           <p className="auth-switch">
-            Already have an account? <Link to="/signin">Sign in</Link>
+            Already have an account? <Link to="/signin" state={{ from: location.state?.from }}>Sign in</Link>
           </p>
         </section>
       </main>
