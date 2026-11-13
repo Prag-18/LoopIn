@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import * as api from '../api/api';
 
 const AppContext = createContext();
 
@@ -57,6 +58,9 @@ export function AppProvider({ children }) {
     }
   });
 
+  const [listings, setListings] = useState(INITIAL_GEAR_LISTINGS);
+  const [backendConnected, setBackendConnected] = useState(false);
+
   const [interactiveStates, setInteractiveStates] = useState(() => {
     try {
       const saved = JSON.parse(localStorage.getItem('loopin-interactions') || '{}');
@@ -66,6 +70,72 @@ export function AppProvider({ children }) {
     }
   });
 
+  // Sync requests and listings from Spring Boot backend on mount
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadBackendData() {
+      // 1. Fetch Item Requests from /api/requests
+      try {
+        const liveRequests = await api.fetchRequests();
+        if (isMounted && Array.isArray(liveRequests)) {
+          const formatted = liveRequests
+            .filter((r) => r.status !== 'CANCELLED')
+            .map((r) => ({
+              id: r.id,
+              item: r.itemName,
+              category: r.category,
+              start: r.startDate,
+              end: r.endDate,
+              degree: r.trustRadius,
+              owner: `${r.requesterName || 'Campus Student'} is looking to borrow this`,
+              requesterEmail: r.requesterEmail,
+              status: r.status,
+              trustVerificationStatus: r.trustVerificationStatus,
+              note: r.note,
+              createdAt: r.createdAt,
+            }));
+          setRequests(formatted);
+          setBackendConnected(true);
+        }
+      } catch (err) {
+        console.warn('[LoopIn] Backend requests API unreachable, using local storage cache:', err.message);
+        setBackendConnected(false);
+      }
+
+      // 2. Fetch Listings from /api/listings
+      try {
+        const liveListings = await api.fetchListings();
+        if (isMounted && Array.isArray(liveListings) && liveListings.length > 0) {
+          const formattedListings = liveListings.map((l) => ({
+            id: `listing-${l.id}`,
+            rawId: l.id,
+            item: l.title,
+            category: l.category,
+            owner: `${l.ownerName} · ${l.category || 'Campus'}`,
+            ownerEmail: l.ownerEmail,
+            trustProof: `Verified Campus Owner · ${l.condition || 'GOOD'} condition`,
+            trustType: l.minTrustDegree === 1 ? '◉' : l.minTrustDegree === 2 ? '◌' : '⌂',
+            degree: l.minTrustDegree,
+            price: 'Free',
+            unit: 'to borrow',
+            available: l.available,
+          }));
+          setListings(formattedListings);
+        }
+      } catch (err) {
+        console.warn('[LoopIn] Backend listings API unreachable, using default items:', err.message);
+      }
+    }
+
+    loadBackendData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Save requests to localStorage as an offline cache
   useEffect(() => {
     try {
       localStorage.setItem('loopin-requests', JSON.stringify(requests));
@@ -74,6 +144,7 @@ export function AppProvider({ children }) {
     }
   }, [requests]);
 
+  // Save interactive button states
   useEffect(() => {
     try {
       localStorage.setItem('loopin-interactions', JSON.stringify(interactiveStates));
@@ -82,6 +153,7 @@ export function AppProvider({ children }) {
     }
   }, [interactiveStates]);
 
+  // Save authenticated user profile
   useEffect(() => {
     try {
       if (profile) {
@@ -94,21 +166,78 @@ export function AppProvider({ children }) {
     }
   }, [profile]);
 
-  const addRequest = (newReq) => {
-    const requestItem = {
-      id: Date.now(),
-      item: newReq.item,
-      start: newReq.start,
-      end: newReq.end,
-      degree: Number(newReq.degree),
-      owner: `${profile?.name || 'You'} is looking to borrow this`,
-      createdAt: new Date().toISOString(),
+  /**
+   * Add a new borrow request by calling POST /api/requests on Spring Boot backend
+   */
+  const addRequest = async (newReq) => {
+    const payload = {
+      itemName: newReq.item,
+      category: newReq.category || 'Academics',
+      requesterName: profile?.name || 'Campus Student',
+      requesterEmail: profile?.email || 'student@campus.edu',
+      startDate: newReq.start,
+      endDate: newReq.end,
+      trustRadius: Number(newReq.degree) || 2,
+      note: newReq.note || '',
+      status: 'OPEN',
     };
-    setRequests((prev) => [requestItem, ...prev]);
-    return requestItem.id;
+
+    try {
+      const created = await api.createRequest(payload);
+      const requestItem = {
+        id: created.id,
+        item: created.itemName,
+        category: created.category,
+        start: created.startDate,
+        end: created.endDate,
+        degree: created.trustRadius,
+        owner: `${created.requesterName || profile?.name || 'You'} is looking to borrow this`,
+        requesterEmail: created.requesterEmail,
+        status: created.status,
+        trustVerificationStatus: created.trustVerificationStatus,
+        createdAt: created.createdAt || new Date().toISOString(),
+      };
+
+      setRequests((prev) => [requestItem, ...prev]);
+      setBackendConnected(true);
+      return created.id;
+    } catch (err) {
+      // If server returned a business rule validation error (e.g., 30-day limit, academic domain), throw it
+      if (err.message && !err.message.includes('Failed to fetch')) {
+        throw err;
+      }
+
+      // Offline fallback
+      console.warn('[LoopIn] Backend offline, saving request locally:', err.message);
+      const fallbackItem = {
+        id: Date.now(),
+        item: newReq.item,
+        category: newReq.category || 'General',
+        start: newReq.start,
+        end: newReq.end,
+        degree: Number(newReq.degree),
+        owner: `${profile?.name || 'You'} is looking to borrow this`,
+        requesterEmail: profile?.email,
+        status: 'OPEN',
+        trustVerificationStatus: 'OFFLINE_MODE',
+        createdAt: new Date().toISOString(),
+      };
+      setRequests((prev) => [fallbackItem, ...prev]);
+      return fallbackItem.id;
+    }
   };
 
-  const withdrawRequest = (id) => {
+  /**
+   * Withdraw / Cancel request by calling PUT /api/requests/{id}/status?status=CANCELLED
+   */
+  const withdrawRequest = async (id) => {
+    try {
+      if (typeof id === 'number') {
+        await api.updateRequestStatus(id, 'CANCELLED');
+      }
+    } catch (err) {
+      console.warn('[LoopIn] Failed to cancel request on backend:', err.message);
+    }
     setRequests((prev) => prev.filter((r) => r.id !== id));
   };
 
@@ -137,7 +266,8 @@ export function AppProvider({ children }) {
       value={{
         profile,
         requests,
-        defaultListings: INITIAL_GEAR_LISTINGS,
+        defaultListings: listings,
+        backendConnected,
         interactiveStates,
         addRequest,
         withdrawRequest,

@@ -15,7 +15,15 @@ function formatDate(value) {
 }
 
 export default function Listings() {
-  const { requests, defaultListings, withdrawRequest, interactiveStates, setActionCompleted, profile } = useApp();
+  const {
+    requests,
+    defaultListings,
+    withdrawRequest,
+    interactiveStates,
+    setActionCompleted,
+    profile,
+    backendConnected,
+  } = useApp();
 
   const totalCount = requests.length + defaultListings.length;
 
@@ -46,7 +54,22 @@ export default function Listings() {
               <p className="section-kicker">Around you</p>
               <h2>Available now</h2>
             </div>
-            <span className="badge-count">{totalCount} nearby</span>
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+              <span
+                style={{
+                  fontSize: '11px',
+                  fontWeight: '600',
+                  padding: '3px 8px',
+                  borderRadius: '12px',
+                  backgroundColor: backendConnected ? '#dcfce7' : '#fef3c7',
+                  color: backendConnected ? '#15803d' : '#b45309',
+                }}
+                title={backendConnected ? 'Connected to Spring Boot REST backend on port 8080' : 'Backend offline - using local cache'}
+              >
+                {backendConnected ? '● Live Backend' : '○ Offline Cache'}
+              </span>
+              <span className="badge-count">{totalCount} nearby</span>
+            </div>
           </div>
 
           {totalCount === 0 && (
@@ -59,14 +82,21 @@ export default function Listings() {
           )}
 
           <div className="match-list">
-            {/* User Created Requests */}
+            {/* User Created Requests (synced from /api/requests) */}
             {requests.map((req) => {
               const config = getConnectionConfig(req.degree);
               const isActioned = interactiveStates[req.id];
 
               return (
                 <article key={req.id} className={`match-card degree-${req.degree}`}>
-                  <div className={`trust-badge ${config.badgeClass}`}>{config.label}</div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <div className={`trust-badge ${config.badgeClass}`}>{config.label}</div>
+                    {req.category && (
+                      <span style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: '600' }}>
+                        {req.category}
+                      </span>
+                    )}
+                  </div>
                   <div className="card-content">
                     <div className="item-info">
                       <h3>{req.item}</h3>
@@ -74,6 +104,16 @@ export default function Listings() {
                       <div className="trust-proof">
                         <span aria-hidden="true">◌</span> {config.proof} · {formatDate(req.start)}–{formatDate(req.end)}
                       </div>
+                      {req.trustVerificationStatus && (
+                        <div style={{ marginTop: '6px', fontSize: '11px', color: '#059669', fontWeight: '600' }}>
+                          ✓ Trust Status: {req.trustVerificationStatus}
+                        </div>
+                      )}
+                      {req.note && (
+                        <p style={{ margin: '6px 0 0', fontSize: '12px', color: '#475569', fontStyle: 'italic' }}>
+                          "{req.note}"
+                        </p>
+                      )}
                     </div>
                     <div className="action-block">
                       <span className="price">Have one?</span>
@@ -102,7 +142,7 @@ export default function Listings() {
               );
             })}
 
-            {/* Default Available Listings */}
+            {/* Available Listings (synced from /api/listings) */}
             {defaultListings.map((item) => {
               const isActioned = interactiveStates[item.id];
               const badgeClass =
