@@ -4,6 +4,7 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
 import Listings from './pages/Listings';
+import HostedItems from './pages/HostedItems';
 import Request from './pages/Request';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
@@ -21,6 +22,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <Listings />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/hosted"
+            element={
+              <ProtectedRoute>
+                <HostedItems />
               </ProtectedRoute>
             }
           />

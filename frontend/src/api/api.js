@@ -67,6 +67,43 @@ export async function fetchListings(category) {
 }
 
 /**
+ * Host a new item listing on campus
+ */
+export async function createListing(payload) {
+  const res = await fetch(`${API_BASE}/listings`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = await res.json().catch(() => null);
+
+  if (!res.ok) {
+    const errorMsg = data?.message || data?.error || `Failed to create listing: HTTP ${res.status}`;
+    throw new Error(errorMsg);
+  }
+
+  return data;
+}
+
+/**
+ * Delete / Withdraw a hosted listing
+ */
+export async function deleteListing(id) {
+  const res = await fetch(`${API_BASE}/listings/${id}`, {
+    method: 'DELETE',
+  });
+
+  if (!res.ok) {
+    throw new Error(`Failed to delete listing: HTTP ${res.status}`);
+  }
+
+  return true;
+}
+
+/**
  * Fetch aggregate borrowing statistics
  */
 export async function fetchStatistics() {

@@ -8,6 +8,8 @@ const INITIAL_GEAR_LISTINGS = [
     id: 'default-1',
     item: 'Canon EOS Rebel T7 DSLR',
     owner: 'Aarav Mehta · CSE ’26',
+    ownerName: 'Aarav Mehta',
+    ownerEmail: 'aarav.m@campus.edu',
     trustProof: 'You share Data Structures',
     trustType: '◉',
     degree: 1,
@@ -19,6 +21,8 @@ const INITIAL_GEAR_LISTINGS = [
     id: 'default-2',
     item: 'Casio fx-991ES Plus',
     owner: 'Kavya Iyer · ECE ’25',
+    ownerName: 'Kavya Iyer',
+    ownerEmail: 'kavya.i@campus.edu',
     trustProof: 'Mutual: Rohan Sharma · 2 past borrows',
     trustType: '◌',
     degree: 2,
@@ -30,6 +34,8 @@ const INITIAL_GEAR_LISTINGS = [
     id: 'default-3',
     item: 'Heavy-duty extension cord · 15 m',
     owner: 'Ishita Verma · Mechanical ’27',
+    ownerName: 'Ishita Verma',
+    ownerEmail: 'ishita.v@campus.edu',
     trustProof: 'Also in Tagore Hostel',
     trustType: '⌂',
     degree: 3,
@@ -58,8 +64,34 @@ export function AppProvider({ children }) {
     }
   });
 
-  const [listings, setListings] = useState(INITIAL_GEAR_LISTINGS);
+  const [listings, setListings] = useState(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('loopin-listings') || 'null');
+      return Array.isArray(saved) && saved.length > 0 ? saved : INITIAL_GEAR_LISTINGS;
+    } catch {
+      return INITIAL_GEAR_LISTINGS;
+    }
+  });
   const [backendConnected, setBackendConnected] = useState(false);
+
+  // Friends & Campus Circle State
+  const [friends, setFriends] = useState(() => {
+    try {
+      const saved = localStorage.getItem('loopin-friends');
+      if (saved) return JSON.parse(saved);
+      // Pre-seed with one default classmate so the user sees circle mechanics
+      return [
+        {
+          name: 'Aarav Mehta',
+          email: 'aarav.m@campus.edu',
+          department: 'CSE ’26',
+          addedAt: new Date().toISOString(),
+        },
+      ];
+    } catch {
+      return [];
+    }
+  });
 
   const [interactiveStates, setInteractiveStates] = useState(() => {
     try {
@@ -89,6 +121,7 @@ export function AppProvider({ children }) {
               end: r.endDate,
               degree: r.trustRadius,
               owner: `${r.requesterName || 'Campus Student'} is looking to borrow this`,
+              requesterName: r.requesterName || 'Campus Student',
               requesterEmail: r.requesterEmail,
               status: r.status,
               trustVerificationStatus: r.trustVerificationStatus,
@@ -113,6 +146,7 @@ export function AppProvider({ children }) {
             item: l.title,
             category: l.category,
             owner: `${l.ownerName} · ${l.category || 'Campus'}`,
+            ownerName: l.ownerName,
             ownerEmail: l.ownerEmail,
             trustProof: `Verified Campus Owner · ${l.condition || 'GOOD'} condition`,
             trustType: l.minTrustDegree === 1 ? '◉' : l.minTrustDegree === 2 ? '◌' : '⌂',
@@ -144,6 +178,24 @@ export function AppProvider({ children }) {
     }
   }, [requests]);
 
+  // Save listings to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('loopin-listings', JSON.stringify(listings));
+    } catch (e) {
+      console.error('Failed to save listings:', e);
+    }
+  }, [listings]);
+
+  // Save friends list
+  useEffect(() => {
+    try {
+      localStorage.setItem('loopin-friends', JSON.stringify(friends));
+    } catch (e) {
+      console.error('Failed to save friends:', e);
+    }
+  }, [friends]);
+
   // Save interactive button states
   useEffect(() => {
     try {
@@ -165,6 +217,37 @@ export function AppProvider({ children }) {
       console.error('Failed to save profile:', e);
     }
   }, [profile]);
+
+  /**
+   * Check if a given student email is already in the user's friend circle
+   */
+  const isFriend = (email) => {
+    if (!email) return false;
+    return friends.some((f) => f.email && f.email.toLowerCase() === email.toLowerCase());
+  };
+
+  /**
+   * Add a host to friend circle
+   */
+  const addFriend = (friend) => {
+    if (!friend || !friend.email) return;
+    if (isFriend(friend.email)) return;
+    const newFriend = {
+      name: friend.name || friend.email.split('@')[0],
+      email: friend.email.toLowerCase(),
+      department: friend.department || 'Campus Circle',
+      addedAt: new Date().toISOString(),
+    };
+    setFriends((prev) => [newFriend, ...prev]);
+  };
+
+  /**
+   * Remove a friend from circle
+   */
+  const removeFriend = (email) => {
+    if (!email) return;
+    setFriends((prev) => prev.filter((f) => f.email.toLowerCase() !== email.toLowerCase()));
+  };
 
   /**
    * Add a new borrow request by calling POST /api/requests on Spring Boot backend
@@ -192,6 +275,7 @@ export function AppProvider({ children }) {
         end: created.endDate,
         degree: created.trustRadius,
         owner: `${created.requesterName || profile?.name || 'You'} is looking to borrow this`,
+        requesterName: created.requesterName || profile?.name || 'You',
         requesterEmail: created.requesterEmail,
         status: created.status,
         trustVerificationStatus: created.trustVerificationStatus,
@@ -202,12 +286,10 @@ export function AppProvider({ children }) {
       setBackendConnected(true);
       return created.id;
     } catch (err) {
-      // If server returned a business rule validation error (e.g., 30-day limit, academic domain), throw it
       if (err.message && !err.message.includes('Failed to fetch')) {
         throw err;
       }
 
-      // Offline fallback
       console.warn('[LoopIn] Backend offline, saving request locally:', err.message);
       const fallbackItem = {
         id: Date.now(),
@@ -217,6 +299,7 @@ export function AppProvider({ children }) {
         end: newReq.end,
         degree: Number(newReq.degree),
         owner: `${profile?.name || 'You'} is looking to borrow this`,
+        requesterName: profile?.name || 'You',
         requesterEmail: profile?.email,
         status: 'OPEN',
         trustVerificationStatus: 'OFFLINE_MODE',
@@ -239,6 +322,75 @@ export function AppProvider({ children }) {
       console.warn('[LoopIn] Failed to cancel request on backend:', err.message);
     }
     setRequests((prev) => prev.filter((r) => r.id !== id));
+  };
+
+  /**
+   * Host a new item on campus (creates an ItemListing)
+   */
+  const addListing = async (newListing) => {
+    const payload = {
+      title: newListing.item || newListing.title,
+      category: newListing.category || 'General',
+      ownerName: profile?.name || 'Campus Student',
+      ownerEmail: profile?.email || 'student@campus.edu',
+      minTrustDegree: Number(newListing.degree) || 2,
+      condition: newListing.condition || 'GOOD',
+      available: true,
+    };
+
+    try {
+      const created = await api.createListing(payload);
+      const formatted = {
+        id: `listing-${created.id}`,
+        rawId: created.id,
+        item: created.title,
+        category: created.category,
+        owner: `${created.ownerName} · ${created.category || 'Campus'}`,
+        ownerName: created.ownerName,
+        ownerEmail: created.ownerEmail,
+        trustProof: `Verified Campus Owner · ${created.condition || 'GOOD'} condition`,
+        trustType: created.minTrustDegree === 1 ? '◉' : created.minTrustDegree === 2 ? '◌' : '⌂',
+        degree: created.minTrustDegree,
+        price: 'Free',
+        unit: 'to borrow',
+        available: created.available,
+      };
+      setListings((prev) => [formatted, ...prev]);
+      return formatted;
+    } catch (err) {
+      console.warn('[LoopIn] Backend offline, saving hosted listing locally:', err.message);
+      const fallbackItem = {
+        id: `listing-local-${Date.now()}`,
+        rawId: Date.now(),
+        item: newListing.item || newListing.title,
+        category: newListing.category || 'General',
+        owner: `${profile?.name || 'You'} · ${newListing.category || 'Campus'}`,
+        ownerName: profile?.name || 'You',
+        ownerEmail: profile?.email || 'student@campus.edu',
+        trustProof: `Verified Campus Owner · ${newListing.condition || 'GOOD'} condition`,
+        trustType: Number(newListing.degree) === 1 ? '◉' : Number(newListing.degree) === 2 ? '◌' : '⌂',
+        degree: Number(newListing.degree) || 2,
+        price: 'Free',
+        unit: 'to borrow',
+        available: true,
+      };
+      setListings((prev) => [fallbackItem, ...prev]);
+      return fallbackItem;
+    }
+  };
+
+  /**
+   * Withdraw / Delete a hosted item listing
+   */
+  const withdrawListing = async (id, rawId) => {
+    if (rawId && typeof rawId === 'number') {
+      try {
+        await api.deleteListing(rawId);
+      } catch (err) {
+        console.warn('[LoopIn] Failed to delete listing on backend:', err.message);
+      }
+    }
+    setListings((prev) => prev.filter((l) => l.id !== id));
   };
 
   const signUp = (name, email) => {
@@ -269,8 +421,14 @@ export function AppProvider({ children }) {
         defaultListings: listings,
         backendConnected,
         interactiveStates,
+        friends,
+        addFriend,
+        removeFriend,
+        isFriend,
         addRequest,
         withdrawRequest,
+        addListing,
+        withdrawListing,
         signUp,
         signIn,
         signOut,

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Hero from '../components/Hero';
 import { useApp } from '../context/AppContext';
@@ -18,41 +18,117 @@ export default function Listings() {
   const {
     requests,
     defaultListings,
-    withdrawRequest,
     interactiveStates,
     setActionCompleted,
     profile,
     backendConnected,
+    addFriend,
+    removeFriend,
+    isFriend,
   } = useApp();
 
-  const totalCount = requests.length + defaultListings.length;
+  const [feedbackToast, setFeedbackToast] = useState('');
 
-  const getConnectionConfig = (degree) => {
-    switch (degree) {
-      case 1:
-        return { label: '1st degree', badgeClass: 'badge-1st', proof: 'Your friends and classmates' };
-      case 2:
-        return { label: '2nd degree', badgeClass: 'badge-2nd', proof: 'Friends of friends' };
-      case 3:
-      default:
-        return { label: 'Campus-wide', badgeClass: 'badge-3rd', proof: 'Visible across campus' };
+  const userEmail = (profile?.email || '').toLowerCase();
+  const isOwnItem = (email) => Boolean(userEmail && (email || '').toLowerCase() === userEmail);
+
+  // Separate explore items (from other campus members) from user's own hosted items
+  const communityRequests = requests.filter((r) => !isOwnItem(r.requesterEmail));
+  const communityListings = defaultListings.filter((l) => !isOwnItem(l.ownerEmail));
+
+  // Count of user's own hosted items
+  const myHostedRequestsCount = requests.filter((r) => isOwnItem(r.requesterEmail)).length;
+  const myHostedListingsCount = defaultListings.filter((l) => isOwnItem(l.ownerEmail)).length;
+  const myHostedCount = myHostedRequestsCount + myHostedListingsCount;
+
+  const totalExploreCount = communityRequests.length + communityListings.length;
+
+  const getConnectionConfig = (degree, isConnected) => {
+    if (isConnected || degree === 1) {
+      return {
+        label: isConnected ? '1st degree (Friend)' : '1st degree',
+        badgeClass: 'badge-1st',
+        proof: isConnected ? 'Connected in your 1st-degree friend circle' : 'Your friends and classmates',
+      };
     }
+    if (degree === 2) {
+      return { label: '2nd degree', badgeClass: 'badge-2nd', proof: 'Friends of friends' };
+    }
+    return { label: 'Campus-wide', badgeClass: 'badge-3rd', proof: 'Visible across campus' };
+  };
+
+  const handleFriendToggle = (name, email) => {
+    if (isFriend(email)) {
+      removeFriend(email);
+      setFeedbackToast(`Removed ${name} from your friend circle`);
+    } else {
+      addFriend({ name, email });
+      setFeedbackToast(`🎉 Connected with ${name}! Their gear is now 1st degree.`);
+    }
+    setTimeout(() => setFeedbackToast(''), 3500);
   };
 
   return (
     <>
       <Hero
         eyebrow="Borrow nearby"
-        title="Useful stuff, close to you."
-        subtitle="Gear from people in your campus community — shown closest connection first."
+        title="Explore Campus Gear"
+        subtitle="Gear available from students in your campus community — shown closest connection first."
         activeMode="listings"
       />
       <main className="main-container single-column">
+        {feedbackToast && (
+          <div className="friend-toast-notification">
+            <span>{feedbackToast}</span>
+          </div>
+        )}
+
+        {/* Top Control Bar & Segmented Navigation */}
+        <div className="hosted-header-bar">
+          <div className="view-mode-tabs">
+            <span className="view-tab active">
+              🔍 Explore Campus Gear ({totalExploreCount})
+            </span>
+            <Link to="/hosted" className="view-tab">
+              📦 My Hosted Items {myHostedCount > 0 ? `(${myHostedCount})` : ''}
+            </Link>
+          </div>
+
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <Link
+              to="/hosted"
+              className="secondary-btn button-link"
+              style={{ width: 'auto', padding: '8px 16px', fontSize: '13px' }}
+            >
+              Manage My Hosted Gear
+            </Link>
+            <Link
+              to="/request"
+              className="primary-btn button-link"
+              style={{ width: 'auto', padding: '8px 16px', fontSize: '13px' }}
+            >
+              + Post Request
+            </Link>
+          </div>
+        </div>
+
+        {/* Informative banner if user has hosted items */}
+        {myHostedCount > 0 && (
+          <div className="hosted-info-banner">
+            <span>
+              ℹ️ You have <strong>{myHostedCount} item{myHostedCount > 1 ? 's' : ''}</strong> currently hosted on the campus network.
+            </span>
+            <Link to="/hosted" className="banner-link">
+              View your hosted items →
+            </Link>
+          </div>
+        )}
+
         <section className="panel-card matches-panel">
           <div className="panel-header">
             <div>
-              <p className="section-kicker">Around you</p>
-              <h2>Available now</h2>
+              <p className="section-kicker">Around you on campus</p>
+              <h2>Available to borrow</h2>
             </div>
             <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
               <span
@@ -68,27 +144,37 @@ export default function Listings() {
               >
                 {backendConnected ? '● Live Backend' : '○ Offline Cache'}
               </span>
-              <span className="badge-count">{totalCount} nearby</span>
+              <span className="badge-count">{totalExploreCount} available</span>
             </div>
           </div>
 
-          {totalCount === 0 && (
+          {totalExploreCount === 0 && (
             <div className="empty-state">
-              <p>Nothing nearby yet — be the first to post a request!</p>
-              <Link to="/request" className="primary-btn button-link" style={{ display: 'inline-flex', width: 'auto', marginTop: '12px' }}>
-                Post a request →
-              </Link>
+              <p>No community items found nearby right now.</p>
+              <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '12px' }}>
+                <Link to="/hosted" className="primary-btn button-link" style={{ display: 'inline-flex', width: 'auto' }}>
+                  + Host your gear for campus
+                </Link>
+                <Link to="/request" className="secondary-btn button-link" style={{ display: 'inline-flex', width: 'auto' }}>
+                  Post a request →
+                </Link>
+              </div>
             </div>
           )}
 
           <div className="match-list">
-            {/* User Created Requests (synced from /api/requests) */}
-            {requests.map((req) => {
-              const config = getConnectionConfig(req.degree);
+            {/* 1. Community Borrow Requests (synced from /api/requests, excluding user's own) */}
+            {communityRequests.map((req) => {
+              const hostEmail = req.requesterEmail || 'student@campus.edu';
+              const hostName =
+                req.requesterName ||
+                (req.owner ? req.owner.replace(' is looking to borrow this', '').split(' · ')[0] : 'Campus Student');
+              const isConnected = isFriend(hostEmail);
+              const config = getConnectionConfig(req.degree, isConnected);
               const isActioned = interactiveStates[req.id];
 
               return (
-                <article key={req.id} className={`match-card degree-${req.degree}`}>
+                <article key={req.id} className={`match-card degree-${isConnected ? 1 : req.degree}`}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                     <div className={`trust-badge ${config.badgeClass}`}>{config.label}</div>
                     {req.category && (
@@ -100,21 +186,38 @@ export default function Listings() {
                   <div className="card-content">
                     <div className="item-info">
                       <h3>{req.item}</h3>
-                      <p className="owner-meta">{req.owner}</p>
+
+                      <div className="owner-row">
+                        <span className="owner-meta">{req.owner}</span>
+                        {profile && (
+                          <button
+                            type="button"
+                            className={`friend-btn ${isConnected ? 'friend-active' : 'friend-add'}`}
+                            onClick={() => handleFriendToggle(hostName, hostEmail)}
+                            title={isConnected ? 'Direct friend (click to remove)' : `Add ${hostName} to your 1st-degree circle`}
+                          >
+                            {isConnected ? '✓ Friend' : '+ Add Friend'}
+                          </button>
+                        )}
+                      </div>
+
                       <div className="trust-proof">
                         <span aria-hidden="true">◌</span> {config.proof} · {formatDate(req.start)}–{formatDate(req.end)}
                       </div>
+
                       {req.trustVerificationStatus && (
                         <div style={{ marginTop: '6px', fontSize: '11px', color: '#059669', fontWeight: '600' }}>
                           ✓ Trust Status: {req.trustVerificationStatus}
                         </div>
                       )}
+
                       {req.note && (
                         <p style={{ margin: '6px 0 0', fontSize: '12px', color: '#475569', fontStyle: 'italic' }}>
                           "{req.note}"
                         </p>
                       )}
                     </div>
+
                     <div className="action-block">
                       <span className="price">Have one?</span>
                       <div className="request-actions">
@@ -126,15 +229,6 @@ export default function Listings() {
                         >
                           {isActioned ? 'Offer sent' : 'Offer yours'}
                         </button>
-                        {profile && (
-                          <button
-                            className="withdraw-btn"
-                            type="button"
-                            onClick={() => withdrawRequest(req.id)}
-                          >
-                            Withdraw request
-                          </button>
-                        )}
                       </div>
                     </div>
                   </div>
@@ -142,28 +236,67 @@ export default function Listings() {
               );
             })}
 
-            {/* Available Listings (synced from /api/listings) */}
-            {defaultListings.map((item) => {
+            {/* 2. Community Available Listings (synced from /api/listings, excluding user's own) */}
+            {communityListings.map((item) => {
               const isActioned = interactiveStates[item.id];
-              const badgeClass =
-                item.degree === 1 ? 'badge-1st' : item.degree === 2 ? 'badge-2nd' : 'badge-3rd';
-              const badgeLabel =
-                item.degree === 1 ? '1st degree' : item.degree === 2 ? '2nd degree' : 'Same building';
+              const hostName = item.ownerName || (item.owner ? item.owner.split(' · ')[0] : 'Campus Lender');
+              const hostEmail =
+                item.ownerEmail ||
+                (item.ownerName
+                  ? item.ownerName.toLowerCase().replace(/\s+/g, '.') + '@campus.edu'
+                  : 'lender@campus.edu');
+              const isConnected = isFriend(hostEmail);
+
+              const badgeClass = isConnected || item.degree === 1 ? 'badge-1st' : item.degree === 2 ? 'badge-2nd' : 'badge-3rd';
+              const badgeLabel = isConnected
+                ? '1st degree (Friend)'
+                : item.degree === 1
+                ? '1st degree'
+                : item.degree === 2
+                ? '2nd degree'
+                : 'Same building';
 
               return (
-                <article key={item.id} className={`match-card degree-${item.degree}`}>
-                  <div className={`trust-badge ${badgeClass}`}>{badgeLabel}</div>
+                <article key={item.id} className={`match-card degree-${isConnected ? 1 : item.degree}`}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <div className={`trust-badge ${badgeClass}`}>{badgeLabel}</div>
+                    {item.category && (
+                      <span style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: '600' }}>
+                        {item.category}
+                      </span>
+                    )}
+                  </div>
+
                   <div className="card-content">
                     <div className="item-info">
                       <h3>{item.item}</h3>
-                      <p className="owner-meta">{item.owner}</p>
+
+                      <div className="owner-row">
+                        <span className="owner-meta">{item.owner}</span>
+                        {profile && (
+                          <button
+                            type="button"
+                            className={`friend-btn ${isConnected ? 'friend-active' : 'friend-add'}`}
+                            onClick={() => handleFriendToggle(hostName, hostEmail)}
+                            title={isConnected ? 'Direct friend (click to remove)' : `Add ${hostName} to your 1st-degree circle`}
+                          >
+                            {isConnected ? '✓ Friend' : '+ Add Friend'}
+                          </button>
+                        )}
+                      </div>
+
                       <div className="trust-proof">
                         <span className="icon" aria-hidden="true">
-                          {item.trustType}
+                          {isConnected ? '◉' : item.trustType}
                         </span>{' '}
-                        <span dangerouslySetInnerHTML={{ __html: item.trustProof }} />
+                        {isConnected ? (
+                          <span>Connected in your 1st-degree circle</span>
+                        ) : (
+                          <span dangerouslySetInnerHTML={{ __html: item.trustProof }} />
+                        )}
                       </div>
                     </div>
+
                     <div className="action-block">
                       <span className="price">
                         {item.price} <small>{item.unit}</small>

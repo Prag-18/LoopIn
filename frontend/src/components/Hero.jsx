@@ -11,16 +11,22 @@ export default function Hero({ eyebrow, title, subtitle, activeMode }) {
       {activeMode !== 'none' && (
         <nav className="mode-switcher" aria-label="Gear options">
           <NavLink
-            to="/request"
-            className={({ isActive }) => `mode-btn ${isActive ? 'active' : ''}`}
-          >
-            I need something
-          </NavLink>
-          <NavLink
             to="/listings"
             className={({ isActive }) => `mode-btn ${isActive ? 'active' : ''}`}
           >
-            Browse gear
+            🔍 Explore Gear
+          </NavLink>
+          <NavLink
+            to="/hosted"
+            className={({ isActive }) => `mode-btn ${isActive ? 'active' : ''}`}
+          >
+            📦 My Hosted Items
+          </NavLink>
+          <NavLink
+            to="/request"
+            className={({ isActive }) => `mode-btn ${isActive ? 'active' : ''}`}
+          >
+            + Post Request
           </NavLink>
         </nav>
       )}

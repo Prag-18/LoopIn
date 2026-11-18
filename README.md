@@ -30,12 +30,16 @@ LoopIn/
 │       ├── context/
 │       │   └── AppContext.jsx             # React State & borrow request context
 │       ├── components/
-│       │   ├── Navbar.jsx                 # Navigation component
-│       │   ├── Hero.jsx                   # Hero banner component
-│       │   └── Footer.jsx                 # Footer component
+│       │   ├── Navbar.jsx                 # Navigation component with Circle badge & hosted count
+│       │   ├── Hero.jsx                   # Hero banner component with Explore/Hosted switcher
+│       │   ├── Footer.jsx                 # Footer component
+│       │   ├── ProtectedRoute.jsx         # Route authentication guard
+│       │   ├── HostItemModal.jsx          # Modal dialog to host gear for the campus network
+│       │   └── CircleModal.jsx            # Campus friend circle management modal
 │       └── pages/
 │           ├── Home.jsx                   # Landing page
-│           ├── Listings.jsx               # Available gear listings & campus feed
+│           ├── Listings.jsx               # Explore campus gear feed (community items)
+│           ├── HostedItems.jsx            # Dedicated view for user's hosted gear & requests
 │           ├── Request.jsx                # Item borrow request form
 │           ├── SignIn.jsx                 # Student login page
 │           └── SignUp.jsx                 # Student registration page
